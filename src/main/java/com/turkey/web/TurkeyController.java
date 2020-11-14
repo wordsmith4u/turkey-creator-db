@@ -1,61 +1,71 @@
 package com.turkey.web;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
+import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 import com.turkey.business.Turkey;
+import com.turkey.db.turkeyRepo;
 
+@CrossOrigin
 @RestController
-@RequestMapping("/turkey")
+@RequestMapping("/turkeys")
 public class TurkeyController {
-
-	private List<Turkey> turkeys = new ArrayList<>();
-
-	// Get all data (select * - no filter)
+	/*
+	 *  A controller will implement 5 CRUD methods:
+	 *  1) GET ALL
+	 *  2) GET BY ID
+	 *  3) POST - Insert / Create
+	 *  4) PUT - Update
+	 *  5) DELETE - Delete
+	 */
+	
+	@Autowired
+	private turkeyRepo turkeyRepo;
+	
+	//Get all turkeys
 	@GetMapping("/")
-	public List<Turkey> getTurkeys() {
-		return turkeys;
+	public List<Turkey> getAll() {
+		return turkeyRepo.findAll();
 	}
 	
-	// Get a single turkey by id (select * by id) 
+	//Get a turkey by id
 	@GetMapping("/{id}")
-	public Turkey getTurkey(@PathVariable int id) {
-		Turkey t = null;
-		for (Turkey turkey : turkeys) {
-			if (turkey.getId() == id) {
-				t = turkey;
-			}
-		}
-		return t;
-		}
-
-	// Add data. No leading forward slash needed when RequestParameters are included.
-	@PostMapping("") 
-	public Turkey createTurkey(@RequestParam int id, @RequestParam String name, @RequestParam double weight) {
-		Turkey t = new Turkey(id, name, weight);
-		turkeys.add(t);
+	public Optional<Turkey> getById(@PathVariable int id) {
+		return turkeyRepo.findById(id);
+	}
+	
+	//Add a turkey
+	@PostMapping("/")
+	public Turkey addTurkey(@RequestBody Turkey t) {
+		t = turkeyRepo.save(t);
 		return t;
 	}
 	
-	// delete a single turkey by id (delete where id = ?) 
-		@DeleteMapping("/{id}")
-		public Turkey deleteTurkey(@PathVariable int id) {
-			Turkey t = null;
-			for (Turkey turkey : turkeys) {
-				if (turkey.getId() == id) {
-					t = turkey;
-					turkeys.remove(t);
-				}
-			}
-			return t;
-			}
+	//Update a turkey
+	@PutMapping("/")
+	public Turkey updateTurkey(@RequestBody Turkey t) {
+		t = turkeyRepo.save(t);
+		return t;
+	}
+	
+	//Delete a turkey
+	@DeleteMapping("/{id}")
+	public Turkey deleteTurkey(@PathVariable int id) {
+		//Optional type will wrap a turkey
+		Optional<Turkey> t = turkeyRepo.findById(id);
+		//isPresent() will return true if a turkey was found
+		if (t.isPresent()) {
+			turkeyRepo.deleteById(id);
+		}
+		else {
+			System.out.println("Error - turkey not found for id "+id);
+		}
+		return t.get();
+	}
+	
+	
+	
+	
 
 }
